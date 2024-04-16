@@ -51,18 +51,20 @@ def main():
     
     opcao_metodo = st.sidebar.selectbox(
         "Escolha o método de solução:",
-        ["Opções Europeias (Black-Scholes)", "Opções Flexíveis (Monte Carlo)", "Opções Americanas e Europeias (Binomial)"]
+        ["Opções Europeias (Black-Scholes)", "Opções Flexíveis (Monte Carlo)", "Opções Americanas e Europeias (Binomial)", "Opções Asiáticas (Monte Carlo)"]
     )
 
     if st.sidebar.button('Calcular preço da opção'):
         st.subheader(f"Resultados para {simbolo} no mercado de {mercado_escolhido}")
         with st.spinner('Calculando...'):
-            if opcao_metodo.startswith("Opções Europeias"):
+            if opcao_metodo == "Opções Europeias (Black-Scholes)":
                 preco_opcao = calcular_preco_opcao_BS(S, K, T, r, sigma)
-            elif opcao_metodo.startswith("Opções Flexíveis"):
+            elif opcao_metodo == "Opções Flexíveis (Monte Carlo)":
                 preco_opcao = calcular_preco_opcao_MonteCarlo(S, K, T, r, sigma)
-            elif opcao_metodo.startswith("Opções Americanas"):
+            elif opcao_metodo == "Opções Americanas e Europeias (Binomial)":
                 preco_opcao = calcular_preco_opcao_Binomial(S, K, T, r, sigma)
+            elif opcao_metodo == "Opções Asiáticas (Monte Carlo)":
+                preco_opcao = calcular_preco_opcao_Asiatica(S, K, T, r, sigma)
 
             st.success(f"Preço da Opção Calculado: {preco_opcao:.2f}")
 
