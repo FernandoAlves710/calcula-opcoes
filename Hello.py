@@ -7,8 +7,8 @@ from scipy.stats import norm
 st.set_page_config(page_title="Calculadora de Opções Avançada", layout="wide", page_icon="📈")
 
 def get_stock_data(ticker_symbol):
-    stock = yf.Ticker(ticker_symbol)
-    if stock.info['quoteType'] == 'ETF':
+    try:
+        stock = yf.Ticker(ticker_symbol)
         hist = stock.history(period="1y")  # Dados históricos do último ano
         if hist.empty:
             st.error(f"Não foi possível obter dados para o símbolo {ticker_symbol}. Por favor, tente outro símbolo.")
@@ -17,8 +17,8 @@ def get_stock_data(ticker_symbol):
         daily_returns = hist['Close'].pct_change().dropna()  # Mudança percentual diária
         volatilidade = np.std(daily_returns) * np.sqrt(252)  # Volatilidade anualizada
         return last_price, volatilidade
-    else:
-        st.error("O símbolo fornecido não é um ETF. Por favor, forneça um símbolo de ETF válido.")
+    except KeyError:
+        st.error(f"As informações necessárias para calcular a opção não estão disponíveis para o símbolo {ticker_symbol}. Por favor, tente outro símbolo.")
         return None, None
 
 def black_scholes(S, K, T, r, sigma, option_type='call'):
