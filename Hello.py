@@ -75,17 +75,17 @@ def vega(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
     return S * norm.pdf(d1) * np.sqrt(T)
 
-# Função para calcular a volatilidade implícita da opção usando o modelo de Black-Scholes
+# Função para calcular a volatilidade implícita
 def implied_volatility(S, K, T, r, option_price, option_type='call'):
     def black_scholes_iv(sigma):
         return black_scholes(S, K, T, r, sigma, option_type) - option_price
-    
-    # Encontrar a volatilidade implícita usando o método de Brent
+
     try:
-        iv = brentq(black_scholes_iv, 0.01, 5.0)
-        return iv
-    except:
-        return np.nan
+        implied_vol = brentq(black_scholes_iv, 0.01, 1)
+    except ValueError:
+        implied_vol = np.nan
+
+    return implied_vol
 
 # Interface do usuário
 st.set_page_config(page_title="Calculadora de Opções Avançada", layout="wide", page_icon="📈")
@@ -103,6 +103,12 @@ st.markdown("""
     }
     h1 {
         color: #0e1117;
+    }
+    .result {
+        background-color: #f0f2f6;
+        padding: 10px;
+        border-radius: 10px;
+        margin-top: 20px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -129,28 +135,34 @@ if simbolo:
             preco_opcao = black_scholes(S, K, T, r, volatility)
             vol_imp = implied_volatility(S, K, T, r, preco_opcao)
             st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
-            st.write(f"Volatilidade Implícita: {vol_imp:.2%}")
+            st.write("### Gregas:")
             st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
             st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
             st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
+            st.write("### Volatilidade Implícita:")
+            st.write(f"{vol_imp:.2%}", cls="result")
     elif option_type == "Americana":
         if st.button('Calcular Preço da Opção'):
             preco_opcao = binomial_option_pricing(S, K, T, r, volatility)
             vol_imp = implied_volatility(S, K, T, r, preco_opcao)
             st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
-            st.write(f"Volatilidade Implícita: {vol_imp:.2%}")
+            st.write("### Gregas:")
             st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
             st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
             st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
+            st.write("### Volatilidade Implícita:")
+            st.write(f"{vol_imp:.2%}", cls="result")
     elif option_type == "Asiática":
         if st.button('Calcular Preço da Opção'):
             preco_opcao = monte_carlo_option_pricing(S, K, T, r, volatility)
             vol_imp = implied_volatility(S, K, T, r, preco_opcao)
             st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
-            st.write(f"Volatilidade Implícita: {vol_imp:.2%}")
+            st.write("### Gregas:")
             st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
             st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
             st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
+            st.write("### Volatilidade Implícita:")
+            st.write(f"{vol_imp:.2%}", cls="result")
 
     st.write("## Histórico de Preços")
     fig = go.Figure()
