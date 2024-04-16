@@ -2,7 +2,6 @@ import streamlit as st
 import numpy as np
 import yfinance as yf
 from scipy.stats import norm
-import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
 # Configuração inicial da página
@@ -21,7 +20,7 @@ def calc_greeks(S, K, T, r, sigma, option_type='call'):
     d2 = d1 - sigma * np.sqrt(T)
     delta = norm.cdf(d1) if option_type == 'call' else norm.cdf(d1) - 1
     gamma = norm.pdf(d1) / (S * sigma * np.sqrt(T))
-    vega = S * norm.pdf(d1) * np.sqrt(T) * 0.01
+    vega = S * norm.pdf(d1) * np.sqrt(T) * 0.01  # Multiplicado por 0.01 para converter de % para pontos base
     return delta, gamma, vega
 
 def plot_simulation(S, sigma, T):
@@ -47,7 +46,10 @@ if simbolo:
 
     if st.button('Calcular Greeks'):
         delta, gamma, vega = calc_greeks(S, K, T, r, sigma, opcao_tipo)
-        st.write(f"Delta: {delta:.4f}, Gamma: {gamma:.4f}, Vega: {vega:.4f}")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Delta", f"{delta:.4f}")
+        col2.metric("Gamma", f"{gamma:.4f}")
+        col3.metric("Vega", f"{vega:.4f}")
 
     if st.button('Simular Preço do Ativo'):
         plot_simulation(S, sigma, T)
