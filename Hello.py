@@ -75,7 +75,35 @@ def vega(S, K, T, r, sigma):
 
 
 # Interface do usuário
+st.set_page_config(page_title="Calculadora de Opções Avançada", layout="wide", page_icon="📈")
+
+# Estilos personalizados
+st.markdown("""
+<style>
+    .big-font {
+        font-size: 25px !important;
+        font-weight: bold;
+    }
+    .reportview-container .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    .sidebar .sidebar-content {
+        padding: 10px 10px 10px 10px;
+    }
+    h1 {
+        color: #0e1117;
+    }
+    .btn-success {
+        color: #fff;
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title('Calculadora de Opções Avançada')
+
 simbolo = st.text_input("Digite o símbolo do ativo (ex: AAPL ou AGRI11):")
 
 if simbolo:
