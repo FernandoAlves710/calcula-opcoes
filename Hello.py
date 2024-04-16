@@ -2,7 +2,6 @@ import streamlit as st
 import numpy as np
 import yfinance as yf
 from scipy.stats import norm
-import plotly.graph_objects as go
 
 # Configuração inicial da página
 st.set_page_config(page_title="Calculadora de Opções Avançada", layout="wide", page_icon="📈")
@@ -15,20 +14,13 @@ def get_stock_data(ticker_symbol):
     volatilidade = np.std(daily_returns) * np.sqrt(252)  # Volatilidade anualizada
     return last_price, volatilidade
 
-def calc_greeks(S, K, T, r, sigma, option_type='call'):
-    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+def black_scholes(S, K, T, r, sigma, option_type='call'):
+    d1 = (np.log(S / K) + (r + sigma**2 / 2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
-    delta = norm.cdf(d1) if option_type == 'call' else norm.cdf(d1) - 1
-    gamma = norm.pdf(d1) / (S * sigma * np.sqrt(T))
-    vega = S * norm.pdf(d1) * np.sqrt(T) * 0.01  # Multiplicado por 0.01 para converter de % para pontos base
-    return delta, gamma, vega
-
-def plot_simulation(S, sigma, T):
-    times = np.linspace(0, T, int(T*365))
-    prices = S * np.exp((r - 0.5 * sigma**2) * times + sigma * np.sqrt(times) * np.random.normal(size=len(times)))
-    fig = go.Figure(data=[go.Line(x=list(range(int(T*365))), y=prices)])
-    fig.update_layout(title='Simulação de Preço do Ativo', xaxis_title='Dias', yaxis_title='Preço do Ativo')
-    st.plotly_chart(fig)
+    if option_type == 'call':
+        return S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+    else:
+        return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
 
 # Interface do usuário
 st.title('Calculadora de Opções Avançada')
@@ -44,12 +36,7 @@ if simbolo:
     r = st.number_input("Taxa de Juros Sem Risco (r):", min_value=0.0, value=0.05, step=0.01, format="%.2f")
     opcao_tipo = st.selectbox("Tipo de Opção:", ["Europeia", "Americana", "Asiática"])
 
-    if st.button('Calcular Greeks'):
-        delta, gamma, vega = calc_greeks(S, K, T, r, sigma, opcao_tipo)
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Delta", f"{delta:.4f}")
-        col2.metric("Gamma", f"{gamma:.4f}")
-        col3.metric("Vega", f"{vega:.4f}")
+    if st.button('Calcular Preço da Opção'):
+        preco_opcao = black_scholes(S, K, T, r, sigma, opcao_tipo)
+        st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
 
-    if st.button('Simular Preço do Ativo'):
-        plot_simulation(S, sigma, T)
