@@ -141,8 +141,3 @@ if simbolo:
                       xaxis_title='Data', yaxis_title='Preço')
     st.plotly_chart(fig)
 
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=hist.index, y=hist['Close'], mode='lines', name='Close Price'))
-    fig.update_layout(title='Histórico de Preços do Ativo nos Últimos 12 Meses',
-                      xaxis_title='Data', yaxis_title='Preço')
-    st.plotly_chart(fig)
