@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 from scipy.stats import norm
 import yfinance as yf
+import matplotlib.pyplot as plt
 
 # Configuração inicial da página
 st.set_page_config(page_title="Calculadora de Opções", layout="wide", page_icon="📈")
@@ -24,23 +25,23 @@ def black_scholes(S, K, T, r, sigma, option_type):
     else:
         return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
 
-# Função para calcular o preço da opção usando o método Binomial
-def binomial_pricing(S, K, T, r, sigma, n, option_type):
-    dt = T / n
-    u = np.exp(sigma * np.sqrt(dt))
-    d = 1 / u
-    p = (np.exp(r * dt) - d) / (u - d)
-    prices = np.zeros((n + 1, n + 1))
-    prices[0, 0] = S
-    for i in range(1, n + 1):
-        prices[i, 0] = prices[i - 1, 0] * u
-        for j in range(1, i + 1):
-            prices[i, j] = prices[i - 1, j - 1] * d
-    option_values = np.maximum(prices - K, 0)
-    for j in range(n - 1, -1, -1):
-        for i in range(j + 1):
-            option_values[i, j] = np.exp(-r * dt) * (p * option_values[i, j + 1] + (1 - p) * option_values[i + 1, j + 1])
-    return option_values[0, 0]
+# Função para calcular o delta da opção
+def delta(S, K, T, r, sigma, option_type):
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    if option_type == 'call':
+        return norm.cdf(d1)
+    else:
+        return norm.cdf(d1) - 1
+
+# Função para calcular o gamma da opção
+def gamma(S, K, T, r, sigma):
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    return norm.pdf(d1) / (S * sigma * np.sqrt(T))
+
+# Função para calcular o vega da opção
+def vega(S, K, T, r, sigma):
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    return S * norm.pdf(d1) * np.sqrt(T) * 0.01  # Multiplicado por 0.01 para converter de % para pontos base
 
 # Função para calcular o preço da opção usando o método de Monte Carlo
 def monte_carlo_pricing(S, K, T, r, sigma, num_simulations, option_type):
@@ -72,15 +73,30 @@ if symbol:
     st.write(f'Volatilidade Anualizada: {volatility:.2%}')
 
     # Método de cálculo do preço da opção
-    option_method = st.selectbox('Escolha o Método de Cálculo:', ['Black-Scholes', 'Binomial', 'Monte Carlo'])
+    option_method = st.selectbox('Escolha o Método de Cálculo:', ['Black-Scholes', 'Monte Carlo'])
 
     # Botão para calcular o preço da opção
     if st.button('Calcular Preço da Opção'):
         if option_method == 'Black-Scholes':
             option_price = black_scholes(S, strike_price, expiry_time, risk_free_rate, volatility, option_type.lower())
-        elif option_method == 'Binomial':
-            option_price = binomial_pricing(S, strike_price, expiry_time, risk_free_rate, volatility, 1000, option_type.lower())
         elif option_method == 'Monte Carlo':
             option_price = monte_carlo_pricing(S, strike_price, expiry_time, risk_free_rate, volatility, 10000, option_type.lower())
         st.success(f'Preço da Opção Calculado: ${option_price:.2f}')
 
+    # Calcular e exibir o delta, gamma e vega
+    st.write('### Análise de Sensibilidade - Greeks')
+    st.write(f'Delta: {delta(S, strike_price, expiry_time, risk_free_rate, volatility, option_type.lower()):.4f}')
+    st.write(f'Gamma: {gamma(S, strike_price, expiry_time, risk_free_rate, volatility):.4f}')
+    st.write(f'Vega: {vega(S, strike_price, expiry_time, risk_free_rate, volatility):.4f}')
+
+    # Plotar o gráfico de previsão do preço
+    st.write('### Gráfico de Previsão do Preço do Ativo')
+    times = np.linspace(0, expiry_time, int(expiry_time * 365))
+    prices = S * np.exp((risk_free_rate - 0.5 * volatility ** 2) * times + volatility * np.sqrt(times) * np.random.normal(size=len(times)))
+    plt.figure(figsize=(10, 5))
+    plt.plot(times, prices)
+    plt.title('Previsão do Preço do Ativo')
+    plt.xlabel('Tempo (anos)')
+    plt.ylabel('Preço do Ativo')
+    plt.grid(True)
+    st.pyplot(plt)
