@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import yfinance as yf
 from scipy.stats import norm
+import plotly.graph_objects as go
 
 # Função para obter os dados do ativo (ação ou ETF) do Yahoo Finance
 def get_stock_data(ticker_symbol):
@@ -10,7 +11,7 @@ def get_stock_data(ticker_symbol):
     last_price = hist['Close'].iloc[-1]  # Último preço de fechamento
     daily_returns = hist['Close'].pct_change().dropna()  # Mudança percentual diária
     volatility = np.std(daily_returns) * np.sqrt(252)  # Volatilidade anualizada
-    return last_price, volatility
+    return last_price, volatility, hist
 
 # Função para calcular o preço da opção usando o modelo de Black-Scholes
 def black_scholes(S, K, T, r, sigma, option_type='call'):
@@ -102,7 +103,7 @@ st.write("## Parâmetros de Entrada")
 simbolo = st.text_input("Digite o símbolo do ativo (ex: AAPL):")
 
 if simbolo:
-    S, volatility = get_stock_data(simbolo)
+    S, volatility, hist = get_stock_data(simbolo)
     st.write(f"Preço Atual do Ativo: {S:.2f}")
     st.write(f"Volatilidade Anualizada: {volatility:.2%}")
 
@@ -132,8 +133,14 @@ if simbolo:
             st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
             st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
             st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
-            
-     st.write("## Histórico de Preços")
+
+    st.write("## Histórico de Preços")
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=hist.index, y=hist['Close'], mode='lines', name='Close Price'))
+    fig.update_layout(title='Histórico de Preços do Ativo nos Últimos 12 Meses',
+                      xaxis_title='Data', yaxis_title='Preço')
+    st.plotly_chart(fig)
+
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=hist.index, y=hist['Close'], mode='lines', name='Close Price'))
     fig.update_layout(title='Histórico de Preços do Ativo nos Últimos 12 Meses',
