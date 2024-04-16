@@ -58,3 +58,48 @@ with col2:
     ax.grid(True)
     st.pyplot(fig)
 
+
+
+def delta(S, K, T, r, sigma, option_type='call'):
+    """Calcula o Delta, que mede a sensibilidade ao preço do ativo subjacente."""
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    if option_type == 'call':
+        return stats.norm.cdf(d1)
+    else:
+        return stats.norm.cdf(d1) - 1
+
+def gamma(S, K, T, r, sigma):
+    """Calcula o Gamma, que mede a taxa de mudança do Delta em relação ao preço do ativo."""
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    return stats.norm.pdf(d1) / (S * sigma * np.sqrt(T))
+
+def vega(S, K, T, r, sigma):
+    """Calcula o Vega, que mede a sensibilidade ao preço em relação à volatilidade do ativo."""
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    return S * stats.norm.pdf(d1) * np.sqrt(T)
+
+
+import plotly.graph_objects as go
+
+def plot_interactive_price_simulation(S, sigma, T):
+    prices = S * np.exp(np.cumsum(np.random.normal(0, sigma, int(T*365)))*np.sqrt(1/365))
+    fig = go.Figure(data=[go.Line(x=list(range(int(T*365))), y=prices)])
+    fig.update_layout(title='Simulação de Preço do Ativo', xaxis_title='Dias', yaxis_title='Preço do Ativo')
+    st.plotly_chart(fig)
+
+
+
+tab1, tab2, tab3 = st.tabs(["Cálculo de Opção", "Greeks", "Simulação de Preço"])
+
+with tab1:
+    st.header("Calculadora de Opção")
+    # Adicionar campos para entrada de dados e botão para calcular
+
+with tab2:
+    st.header("Análise de Sensibilidade - Greeks")
+    # Campos para entrada de dados e visualização de Greeks
+
+with tab3:
+    st.header("Simulação de Preço do Ativo")
+    # Inserir gráfico interativo de simulação de preço
+
