@@ -6,3 +6,4 @@ streamlit
 scipy
 matplotlib
 plotly
+yfinance
