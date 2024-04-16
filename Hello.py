@@ -57,7 +57,7 @@ if simbolo:
 
     # Cálculo das Gregas
     st.header("Análise de Sensibilidade - Gregas")
-    with st.beta_expander("Mostrar Gregas"):
+    with st.expander("Mostrar Gregas"):
         st.write("### Delta:")
         delta_valor = delta(S, K, T, r, sigma, opcao_tipo)
         st.write(f"Delta: {delta_valor:.4f}")
