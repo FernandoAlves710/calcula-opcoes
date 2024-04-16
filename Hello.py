@@ -34,32 +34,13 @@ def calcular_preco_opcao_Binomial(S, K, T, r, sigma, n=1000):
             option_values[i, j] = np.exp(-r * dt) * (p * option_values[i, j+1] + (1 - p) * option_values[i+1, j+1])
     return option_values[0, 0]
 
-def calcular_preco_opcao_Asiatica(S, K, T, r, sigma, num_simulacoes=10000):
-    dt = T / 365
-    ST = np.zeros(num_simulacoes)
-    for i in range(num_simulacoes):
-        path = S * np.cumprod(np.exp((r - 0.5 * sigma**2) * dt + sigma * np.sqrt(dt) * np.random.normal(0, 1, int(365*T))))
-        average_price = np.mean(path)
-        ST[i] = np.exp(-r * T) * max(average_price - K, 0)
-    return np.mean(ST)
-
-def plot_simulation(simulation, S, K):
-    plt.figure(figsize=(10, 4))
-    plt.plot(simulation)
-    plt.axhline(y=K, color='r', linestyle='--')
-    plt.title("Simulação de Monte Carlo do Preço do Ativo")
-    plt.xlabel("Dias")
-    plt.ylabel("Preço do Ativo")
-    plt.grid(True)
-    st.pyplot(plt)
-
 def main():
     st.title("Calculadora de Opções")
     st.sidebar.header("Parâmetros da Opção")
 
     mercado_escolhido = st.sidebar.selectbox(
         "Escolha o mercado que deseja analisar:",
-        ["Ações", "Moedas", "ETFs", "Offshore", "Opções Exóticas"]
+        ["Ações", "Moedas", "ETFs", "Offshore"]
     )
     simbolo = st.sidebar.text_input("Digite o símbolo do ativo ou a paridade de moeda (ex: AAPL ou EURUSD)")
     S = st.sidebar.number_input("Preço do Ativo (S):", value=100.0)
@@ -67,23 +48,21 @@ def main():
     T = st.sidebar.number_input("Tempo até a Expiração (T) em anos:", value=1.0)
     r = st.sidebar.number_input("Taxa de Juros Sem Risco (r):", value=0.05)
     sigma = st.sidebar.number_input("Volatilidade (sigma):", value=0.2)
+    
     opcao_metodo = st.sidebar.selectbox(
         "Escolha o método de solução:",
-        ["Black-Scholes", "Monte Carlo", "Binomial", "Opção Asiática"]
+        ["Opções Europeias (Black-Scholes)", "Opções Flexíveis (Monte Carlo)", "Opções Americanas e Europeias (Binomial)"]
     )
 
     if st.sidebar.button('Calcular preço da opção'):
         st.subheader(f"Resultados para {simbolo} no mercado de {mercado_escolhido}")
         with st.spinner('Calculando...'):
-            if opcao_metodo == "Black-Scholes":
+            if opcao_metodo.startswith("Opções Europeias"):
                 preco_opcao = calcular_preco_opcao_BS(S, K, T, r, sigma)
-            elif opcao_metodo == "Monte Carlo":
+            elif opcao_metodo.startswith("Opções Flexíveis"):
                 preco_opcao = calcular_preco_opcao_MonteCarlo(S, K, T, r, sigma)
-                plot_simulation(np.cumsum(np.random.normal(0, 1, int(365*T)))*sigma + np.log(S), S, K)
-            elif opcao_metodo == "Binomial":
+            elif opcao_metodo.startswith("Opções Americanas"):
                 preco_opcao = calcular_preco_opcao_Binomial(S, K, T, r, sigma)
-            elif opcao_metodo == "Opção Asiática":
-                preco_opcao = calcular_preco_opcao_Asiatica(S, K, T, r, sigma)
 
             st.success(f"Preço da Opção Calculado: {preco_opcao:.2f}")
 
