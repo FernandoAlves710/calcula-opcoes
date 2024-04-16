@@ -55,6 +55,25 @@ def monte_carlo_option_pricing(S, K, T, r, sigma, num_simulations=10000):
     option_price = np.exp(-r * T) * np.mean(payoff)
     return option_price
 
+# Função para calcular o delta da opção usando o modelo de Black-Scholes
+def delta(S, K, T, r, sigma, option_type='call'):
+    d1 = (np.log(S / K) + (r + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
+    if option_type == 'call':
+        return norm.cdf(d1)
+    else:
+        return norm.cdf(d1) - 1
+
+# Função para calcular o gamma da opção usando o modelo de Black-Scholes
+def gamma(S, K, T, r, sigma):
+    d1 = (np.log(S / K) + (r + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
+    return norm.pdf(d1) / (S * sigma * np.sqrt(T))
+
+# Função para calcular o vega da opção usando o modelo de Black-Scholes
+def vega(S, K, T, r, sigma):
+    d1 = (np.log(S / K) + (r + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
+    return S * norm.pdf(d1) * np.sqrt(T)
+
+
 # Interface do usuário
 st.title('Calculadora de Opções Avançada')
 simbolo = st.text_input("Digite o símbolo do ativo (ex: AAPL ou AGRI11):")
@@ -73,11 +92,21 @@ if simbolo:
         if st.button('Calcular Preço da Opção'):
             preco_opcao = black_scholes(S, K, T, r, volatility)
             st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
+            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
+            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
+            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
     elif option_type == "Americana":
         if st.button('Calcular Preço da Opção'):
             preco_opcao = binomial_option_pricing(S, K, T, r, volatility)
             st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
+            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
+            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
+            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
     elif option_type == "Asiática":
         if st.button('Calcular Preço da Opção'):
             preco_opcao = monte_carlo_option_pricing(S, K, T, r, volatility)
             st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
+            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
+            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
+            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
+
