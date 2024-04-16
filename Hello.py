@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 from scipy import stats
+import matplotlib.pyplot as plt
 
 def calcular_preco_opcao_BS(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
@@ -33,11 +34,20 @@ def calcular_preco_opcao_Binomial(S, K, T, r, sigma, n=1000):
             option_values[i, j] = np.exp(-r * dt) * (p * option_values[i, j+1] + (1 - p) * option_values[i+1, j+1])
     return option_values[0, 0]
 
+def plot_simulation(simulation, S, K):
+    plt.figure(figsize=(10, 4))
+    plt.plot(simulation)
+    plt.axhline(y=K, color='r', linestyle='--')
+    plt.title("Simulação de Monte Carlo do Preço do Ativo")
+    plt.xlabel("Dias")
+    plt.ylabel("Preço do Ativo")
+    plt.grid(True)
+    st.pyplot(plt)
+
 def main():
     st.title("Calculadora de Opções")
-
-    # Inputs do usuário
     st.sidebar.header("Parâmetros da Opção")
+
     mercado_escolhido = st.sidebar.selectbox(
         "Escolha o mercado que deseja analisar:",
         ["Ações", "Moedas", "ETFs", "Offshore"]
@@ -53,18 +63,18 @@ def main():
         ["Black-Scholes", "Monte Carlo", "Binomial"]
     )
 
-    # Botão para calcular
     if st.sidebar.button('Calcular preço da opção'):
-        if opcao_metodo == "Black-Scholes":
-            preco_opcao = calcular_preco_opcao_BS(S, K, T, r, sigma)
-        elif opcao_metodo == "Monte Carlo":
-            preco_opcao = calcular_preco_opcao_MonteCarlo(S, K, T, r, sigma)
-        elif opcao_metodo == "Binomial":
-            preco_opcao = calcular_preco_opcao_Binomial(S, K, T, r, sigma)
-
-        # Exibindo os resultados
         st.subheader(f"Resultados para {simbolo} no mercado de {mercado_escolhido}")
-        st.write(f"**Preço da Opção Calculado:** {preco_opcao:.2f}")
+        with st.spinner('Calculando...'):
+            if opcao_metodo == "Black-Scholes":
+                preco_opcao = calcular_preco_opcao_BS(S, K, T, r, sigma)
+            elif opcao_metodo == "Monte Carlo":
+                preco_opcao = calcular_preco_opcao_MonteCarlo(S, K, T, r, sigma)
+                plot_simulation(np.cumsum(np.random.normal(0, 1, int(365*T)))*sigma + np.log(S), S, K)
+            elif opcao_metodo == "Binomial":
+                preco_opcao = calcular_preco_opcao_Binomial(S, K, T, r, sigma)
+
+            st.success(f"Preço da Opção Calculado: {preco_opcao:.2f}")
 
 if __name__ == "__main__":
     main()
