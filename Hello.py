@@ -1,51 +1,177 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import streamlit as st
-from streamlit.logger import get_logger
 
-LOGGER = get_logger(__name__)
+import numpy as np
 
+from scipy.stats import norm
 
-def run():
-    st.set_page_config(
-        page_title="Hello",
-        page_icon="👋",
-    )
+ 
 
-    st.write("# Welcome to Streamlit! 👋")
+# Função para calcular o preço da opção usando o modelo Black-Scholes
 
-    st.sidebar.success("Select a demo above.")
+def calcular_preco_opcao(tipo_opcao, S, K, T, r, sigma):
 
-    st.markdown(
-        """
-        Streamlit is an open-source app framework built specifically for
-        Machine Learning and Data Science projects.
-        **👈 Select a demo from the sidebar** to see some examples
-        of what Streamlit can do!
-        ### Want to learn more?
-        - Check out [streamlit.io](https://streamlit.io)
-        - Jump into our [documentation](https://docs.streamlit.io)
-        - Ask a question in our [community
-          forums](https://discuss.streamlit.io)
-        ### See more complex demos
-        - Use a neural net to [analyze the Udacity Self-driving Car Image
-          Dataset](https://github.com/streamlit/demo-self-driving)
-        - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
-    """
-    )
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
 
+    d2 = d1 - sigma * np.sqrt(T)
+
+    if tipo_opcao == "Call":
+
+        preco_opcao = S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+
+    else:
+
+        preco_opcao = K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+
+    return preco_opcao
+
+ 
+
+# Função para calcular a grega Delta da opção usando o modelo Black-Scholes
+
+def calcular_delta(tipo_opcao, S, K, T, r, sigma):
+
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+
+    if tipo_opcao == "Call":
+
+        delta = norm.cdf(d1)
+
+    else:
+
+        delta = norm.cdf(d1) - 1
+
+    return delta
+
+ 
+
+# Função para calcular a grega Gamma da opção usando o modelo Black-Scholes
+
+def calcular_gamma(S, K, T, r, sigma):
+
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+
+    gamma = norm.pdf(d1) / (S * sigma * np.sqrt(T))
+
+    return gamma
+
+ 
+
+# Função para calcular a grega Theta da opção usando o modelo Black-Scholes
+
+def calcular_theta(tipo_opcao, S, K, T, r, sigma):
+
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+
+    d2 = d1 - sigma * np.sqrt(T)
+
+    if tipo_opcao == "Call":
+
+        theta = - (S * norm.pdf(d1) * sigma) / (2 * np.sqrt(T)) - r * K * np.exp(-r * T) * norm.cdf(d2)
+
+    else:
+
+        theta = - (S * norm.pdf(d1) * sigma) / (2 * np.sqrt(T)) + r * K * np.exp(-r * T) * norm.cdf(-d2)
+
+    return theta
+
+ 
+
+# Função para calcular a grega Vega da opção usando o modelo Black-Scholes
+
+def calcular_vega(S, K, T, r, sigma):
+
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+
+    vega = S * norm.pdf(d1) * np.sqrt(T)
+
+    return vega
+
+ 
+
+# Função para calcular a volatilidade implícita usando o modelo Black-Scholes
+
+def calcular_volatilidade_impl(tipo_opcao, S, K, T, r, preco_opcao):
+
+    def black_scholes(sigma):
+
+        d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+
+        d2 = d1 - sigma * np.sqrt(T)
+
+        if tipo_opcao == "Call":
+
+            return S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2) - preco_opcao
+
+        else:
+
+            return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1) - preco_opcao
+
+    # Utilize alguma técnica de otimização para encontrar a volatilidade implícita
+
+    volatilidade_impl = optimize.fsolve(black_scholes, 0.2)[0]
+
+    return volatilidade_impl
+
+ 
+
+def main():
+
+    st.title("Calculadora de Opções")
+
+ 
+
+    # Widgets para seleção do tipo de opção, preço do ativo subjacente, preço de exercício, tempo até o vencimento, taxa livre de risco e volatilidade
+
+    tipo_opcao = st.radio("Selecione o tipo de opção:", ("Call", "Put"))
+
+    S = st.number_input("Preço do Ativo Subjacente (S):")
+
+    K = st.number_input("Preço de Exercício (K):")
+
+    T = st.number_input("Tempo até o Vencimento (T) em anos:")
+
+    r = st.number_input("Taxa Livre de Risco (r):")
+
+    sigma = st.number_input("Volatilidade (σ):")
+
+ 
+
+    # Botão para acionar os cálculos
+
+    if st.button("Calcular"):
+
+        # Chama as funções de cálculo
+
+        preco_opcao = calcular_preco_opcao(tipo_opcao, S, K, T, r, sigma)
+
+        delta = calcular_delta(tipo_opcao, S, K, T, r, sigma)
+
+        gamma = calcular_gamma(S, K, T, r, sigma)
+
+        theta = calcular_theta(tipo_opcao, S, K, T, r, sigma)
+
+        vega = calcular_vega(S, K, T, r, sigma)
+
+        volatilidade_impl = calcular_volatilidade_impl(tipo_opcao, S, K, T, r, preco_opcao)
+
+ 
+
+        # Exibe os resultados
+
+        st.write("Preço da Opção:", preco_opcao)
+
+        st.write("Delta:", delta)
+
+        st.write("Gamma:", gamma)
+
+        st.write("Theta:", theta)
+
+        st.write("Vega:", vega)
+
+        st.write("Volatilidade Implícita:", volatilidade_impl)
+
+ 
 
 if __name__ == "__main__":
-    run()
+
+    main()
