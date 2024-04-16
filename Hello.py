@@ -1,10 +1,13 @@
+import streamlit as st
+import numpy as np
+from scipy import stats
+
 def calcular_preco_opcao_BS(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
     preco_opcao = S * stats.norm.cdf(d1) - K * np.exp(-r * T) * stats.norm.cdf(d2)
     return preco_opcao
 
-# Função para calcular o preço da opção usando o método de Monte Carlo
 def calcular_preco_opcao_MonteCarlo(S, K, T, r, sigma, num_simulacoes=10000):
     dt = T / 365
     Z = np.random.normal(0, 1, num_simulacoes)
@@ -13,7 +16,6 @@ def calcular_preco_opcao_MonteCarlo(S, K, T, r, sigma, num_simulacoes=10000):
     preco_opcao = np.exp(-r * T) * np.mean(payoff)
     return preco_opcao
 
-# Função para calcular o preço da opção usando o método binomial
 def calcular_preco_opcao_Binomial(S, K, T, r, sigma, n=1000):
     dt = T / n
     u = np.exp(sigma * np.sqrt(dt))
@@ -31,42 +33,32 @@ def calcular_preco_opcao_Binomial(S, K, T, r, sigma, n=1000):
             option_values[i, j] = np.exp(-r * dt) * (p * option_values[i, j+1] + (1 - p) * option_values[i+1, j+1])
     return option_values[0, 0]
 
-# Obtendo o mercado escolhido pelo usuário
-print("Escolha o mercado que deseja analisar:")
-print("1. Ações")
-print("2. Moedas")
-mercado_escolhido = int(input("Digite o número correspondente ao mercado desejado: "))
+def main():
+    st.title("Calculadora de Opções")
 
-if mercado_escolhido == 1:
-    mercado = "Ações"
-elif mercado_escolhido == 2:
-    mercado = "Moedas"
+    # Inputs do usuário
+    st.sidebar.header("Parâmetros da Opção")
+    mercado_escolhido = st.sidebar.selectbox("Escolha o mercado que deseja analisar:", ["Ações", "Moedas"])
+    simbolo = st.sidebar.text_input("Digite o símbolo do ativo ou a paridade de moeda (ex: AAPL ou EURUSD)")
+    S = st.sidebar.number_input("Preço do Ativo (S):", value=100.0)
+    K = st.sidebar.number_input("Preço de Exercício (K):", value=100.0)
+    T = st.sidebar.number_input("Tempo até a Expiração (T) em anos:", value=1.0)
+    r = st.sidebar.number_input("Taxa de Juros Sem Risco (r):", value=0.05)
+    sigma = st.sidebar.number_input("Volatilidade (sigma):", value=0.2)
+    opcao_metodo = st.sidebar.selectbox("Escolha o método de solução:", ["Black-Scholes", "Monte Carlo", "Binomial"])
 
-# Obtendo o símbolo do ativo ou paridade de moeda
-simbolo = input("Digite o símbolo do ativo ou a paridade de moeda (ex: AAPL ou EURUSD): ")
+    # Botão para calcular
+    if st.sidebar.button('Calcular preço da opção'):
+        if opcao_metodo == "Black-Scholes":
+            preco_opcao = calcular_preco_opcao_BS(S, K, T, r, sigma)
+        elif opcao_metodo == "Monte Carlo":
+            preco_opcao = calcular_preco_opcao_MonteCarlo(S, K, T, r, sigma)
+        elif opcao_metodo == "Binomial":
+            preco_opcao = calcular_preco_opcao_Binomial(S, K, T, r, sigma)
 
-# Obtendo os parâmetros da opção
-S = float(input("Preço do Ativo (S): "))
-K = float(input("Preço de Exercício (K): "))
-T = float(input("Tempo até a Expiração (T) em anos: "))
-r = float(input("Taxa de Juros Sem Risco (r): "))
-sigma = float(input("Volatilidade (sigma): "))
+        # Exibindo os resultados
+        st.subheader(f"Resultados para {simbolo} no mercado de {mercado_escolhido}")
+        st.write(f"**Preço da Opção Calculado:** {preco_opcao:.2f}")
 
-# Escolha do método de solução
-print("Escolha o método de solução:")
-print("1. Black-Scholes")
-print("2. Monte Carlo")
-print("3. Binomial")
-
-opcao_metodo = int(input("Digite o número correspondente ao método de solução desejado: "))
-
-# Calcula o preço da opção com base no método selecionado
-if opcao_metodo == 1:
-    preco_opcao = calcular_preco_opcao_BS(S, K, T, r, sigma)
-elif opcao_metodo == 2:
-    preco_opcao = calcular_preco_opcao_MonteCarlo(S, K, T, r, sigma)
-elif opcao_metodo == 3:
-    preco_opcao = calcular_preco_opcao_Binomial(S, K, T, r, sigma)
-
-# Exibe o preço da opção
-print(f"Preço da opção calculado: {preco_opcao}")
+if __name__ == "__main__":
+    main()
