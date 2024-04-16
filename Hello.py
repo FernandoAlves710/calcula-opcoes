@@ -22,6 +22,21 @@ def black_scholes(S, K, T, r, sigma, option_type='call'):
     else:
         return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
 
+def delta(S, K, T, r, sigma, option_type='call'):
+    d1 = (np.log(S / K) + (r + sigma**2 / 2) * T) / (sigma * np.sqrt(T))
+    if option_type == 'call':
+        return np.exp(-r * T) * norm.cdf(d1)
+    else:
+        return np.exp(-r * T) * (norm.cdf(d1) - 1)
+
+def gamma(S, K, T, r, sigma):
+    d1 = (np.log(S / K) + (r + sigma**2 / 2) * T) / (sigma * np.sqrt(T))
+    return np.exp(-r * T) * norm.pdf(d1) / (S * sigma * np.sqrt(T))
+
+def vega(S, K, T, r, sigma):
+    d1 = (np.log(S / K) + (r + sigma**2 / 2) * T) / (sigma * np.sqrt(T))
+    return S * np.exp(-r * T) * np.sqrt(T) * norm.pdf(d1)
+
 # Interface do usuário
 st.title('Calculadora de Opções Avançada')
 simbolo = st.text_input("Digite o símbolo do ativo (ex: AAPL):")
@@ -40,4 +55,18 @@ if simbolo:
         preco_opcao = black_scholes(S, K, T, r, sigma, opcao_tipo)
         st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
 
+    # Cálculo das Gregas
+    st.header("Análise de Sensibilidade - Gregas")
+    with st.beta_expander("Mostrar Gregas"):
+        st.write("### Delta:")
+        delta_valor = delta(S, K, T, r, sigma, opcao_tipo)
+        st.write(f"Delta: {delta_valor:.4f}")
+
+        st.write("### Gamma:")
+        gamma_valor = gamma(S, K, T, r, sigma)
+        st.write(f"Gamma: {gamma_valor:.4f}")
+
+        st.write("### Vega:")
+        vega_valor = vega(S, K, T, r, sigma)
+        st.write(f"Vega: {vega_valor:.4f}")
 
