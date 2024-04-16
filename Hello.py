@@ -132,11 +132,10 @@ if simbolo:
             st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
             st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
             st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
-
- st.write("## Histórico de Preços")
+            
+     st.write("## Histórico de Preços")
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=hist.index, y=hist['Close'], mode='lines', name='Close Price'))
     fig.update_layout(title='Histórico de Preços do Ativo nos Últimos 12 Meses',
                       xaxis_title='Data', yaxis_title='Preço')
     st.plotly_chart(fig)
-
