@@ -5,3 +5,4 @@ pydeck
 streamlit
 scipy
 matplotlib
+plotly
