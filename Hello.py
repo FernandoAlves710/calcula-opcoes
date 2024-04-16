@@ -2,8 +2,8 @@ import streamlit as st
 import numpy as np
 import yfinance as yf
 from scipy.stats import norm
-import plotly.graph_objects as go
 from scipy.optimize import brentq
+import plotly.graph_objects as go
 
 # Função para obter os dados do ativo (ação ou ETF) do Yahoo Finance
 def get_stock_data(ticker_symbol):
@@ -75,15 +75,20 @@ def vega(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
     return S * norm.pdf(d1) * np.sqrt(T)
 
-# Função para calcular a volatilidade implícita da opção
+# Função para calcular a volatilidade implícita
 def implied_volatility(S, K, T, r, option_price, option_type='call'):
-    def black_scholes_implied_vol(sigma):
+    def black_scholes_iv(sigma):
         if option_type == 'call':
             return black_scholes(S, K, T, r, sigma) - option_price
         else:
             return black_scholes(S, K, T, r, sigma, option_type='put') - option_price
 
-    return brentq(black_scholes_implied_vol, 0.01, 2)
+    try:
+        implied_vol = brentq(black_scholes_iv, 0.01, 1)
+    except ValueError:
+        implied_vol = np.nan
+
+    return implied_vol
 
 # Interface do usuário
 st.set_page_config(page_title="Calculadora de Opções Avançada", layout="wide", page_icon="📈")
@@ -101,6 +106,15 @@ st.markdown("""
     }
     h1 {
         color: #0e1117;
+    }
+    .result {
+        font-size: 20px;
+        font-weight: bold;
+        color: #036;
+    }
+    .description {
+        font-size: 16px;
+        color: #444;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -125,43 +139,18 @@ if simbolo:
     if option_type == "Europeia":
         if st.button('Calcular Preço da Opção'):
             preco_opcao = black_scholes(S, K, T, r, volatility)
+            vol_imp = implied_volatility(S, K, T, r, preco_opcao)
             st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
-
-            st.write("**Greeks e Volatilidade Implícita**")
-            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
-            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
-            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
-            st.write(f"Volatilidade Implícita: {implied_volatility(S, K, T, r, preco_opcao):.4f}")
-
-    elif option_type == "Americana":
-        if st.button('Calcular Preço da Opção'):
-            preco_opcao = binomial_option_pricing(S, K, T, r, volatility)
-            st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
-
-            st.write("**Greeks e Volatilidade Implícita**")
-            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
-            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
-            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
-            st.write(f"Volatilidade Implícita: {implied_volatility(S, K, T, r, preco_opcao):.4f}")
-
-    elif option_type == "Asiática":
-        if st.button('Calcular Preço da Opção'):
-            preco_opcao = monte_carlo_option_pricing(S, K, T, r, volatility)
-            st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
-
-            st.write("**Greeks e Volatilidade Implícita**")
-            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
-            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
-            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
-            st.write(f"Volatilidade Implícita: {implied_volatility(S, K, T, r, preco_opcao):.4f}")
+            st.write("### Gregas:")
+            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f} (sensibilidade do preço da opção em relação ao preço do ativo subjacente)")
+            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f} (sensibilidade do delta em relação ao preço do ativo subjacente)")
+            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f} (sensibilidade do preço da opção em relação à volatilidade do ativo subjacente)")
+            st.write("### Volatilidade Implícita:")
+            st.write(f"{vol_imp:.2%}", cls="result")
+            st.write("Descrição: Volatilidade implícita é a volatilidade futura do ativo subjacente, inferida do preço atual da opção.")
 
     st.write("## Histórico de Preços")
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=hist.index, y=hist['Close'], mode='lines', name='Close Price'))
-    fig.update_layout(title='Histórico de Preços do Ativo nos Últimos 12 Meses',
-                      xaxis_title='Data', yaxis_title='Preço')
-    st.plotly_chart(fig)
-
     fig.add_trace(go.Scatter(x=hist.index, y=hist['Close'], mode='lines', name='Close Price'))
     fig.update_layout(title='Histórico de Preços do Ativo nos Últimos 12 Meses',
                       xaxis_title='Data', yaxis_title='Preço')
