@@ -32,7 +32,7 @@ st.title('Calculadora de Opções Avançada', anchor=None)
 with st.sidebar:
     st.markdown("## Parâmetros de Entrada")
     mercado = st.selectbox("Escolha o Mercado:", ["Ações", "Moedas", "ETFs", "Offshore"])
-    simbolo = st.text_input("Símbolo do Ativo:")
+    simbolo = st.text_input("Símbolo do Ativo:", placeholder="Ex: AAPL ou EURUSD")
     S = st.number_input("Preço do Ativo (S):", min_value=0.0, value=100.0, format="%.2f")
     K = st.number_input("Preço de Exercício (K):", min_value=0.0, value=100.0, format="%.2f")
     T = st.number_input("Tempo até a Expiração (T) em anos:", min_value=0.0, value=1.0, step=0.1, format="%.2f")
