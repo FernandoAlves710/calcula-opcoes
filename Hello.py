@@ -38,14 +38,20 @@ def main():
 
     # Inputs do usuário
     st.sidebar.header("Parâmetros da Opção")
-    mercado_escolhido = st.sidebar.selectbox("Escolha o mercado que deseja analisar:", ["Ações", "Moedas"])
+    mercado_escolhido = st.sidebar.selectbox(
+        "Escolha o mercado que deseja analisar:",
+        ["Ações", "Moedas", "ETFs", "Offshore"]
+    )
     simbolo = st.sidebar.text_input("Digite o símbolo do ativo ou a paridade de moeda (ex: AAPL ou EURUSD)")
     S = st.sidebar.number_input("Preço do Ativo (S):", value=100.0)
     K = st.sidebar.number_input("Preço de Exercício (K):", value=100.0)
     T = st.sidebar.number_input("Tempo até a Expiração (T) em anos:", value=1.0)
     r = st.sidebar.number_input("Taxa de Juros Sem Risco (r):", value=0.05)
     sigma = st.sidebar.number_input("Volatilidade (sigma):", value=0.2)
-    opcao_metodo = st.sidebar.selectbox("Escolha o método de solução:", ["Black-Scholes", "Monte Carlo", "Binomial"])
+    opcao_metodo = st.sidebar.selectbox(
+        "Escolha o método de solução:",
+        ["Black-Scholes", "Monte Carlo", "Binomial"]
+    )
 
     # Botão para calcular
     if st.sidebar.button('Calcular preço da opção'):
