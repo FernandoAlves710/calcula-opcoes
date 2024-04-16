@@ -2,8 +2,6 @@ import streamlit as st
 
 import numpy as np
 
-pip install scipy
-
 python -c "from scipy.stats import norm; print('Scipy está instalado!')"
 
 from scipy.stats import norm
