@@ -75,7 +75,7 @@ def vega(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + sigma ** 2 / 2) * T) / (sigma * np.sqrt(T))
     return S * norm.pdf(d1) * np.sqrt(T)
 
-# Função para calcular a volatilidade implícita
+# Função para calcular a volatilidade implícita para uma opção europeia
 def implied_volatility(S, K, T, r, price, option_type='call'):
     """
     Retorna a volatilidade implícita para uma opção europeia usando o método de Brentq.
@@ -166,3 +166,4 @@ if simbolo:
     fig.update_layout(title='Histórico de Preços do Ativo nos Últimos 12 Meses',
                       xaxis_title='Data', yaxis_title='Preço')
     st.plotly_chart(fig)
+
