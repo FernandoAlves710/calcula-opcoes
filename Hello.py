@@ -6,21 +6,33 @@ from scipy.stats import norm
 # Configuração inicial da página
 st.set_page_config(page_title="Calculadora de Opções Avançada", layout="wide", page_icon="📈")
 
+import yfinance as yf
+
 def get_stock_data(ticker_symbol):
     try:
         stock = yf.Ticker(ticker_symbol)
-        hist = stock.history(period="1y")  # Dados históricos do último ano
-        if hist.empty:
-            st.error(f"Não foi possível obter dados para o símbolo {ticker_symbol}. Por favor, tente outro símbolo.")
-            return None, None
-        last_price = hist['Close'].iloc[-1]  # Último preço de fechamento
-        daily_returns = hist['Close'].pct_change().dropna()  # Mudança percentual diária
-        volatilidade = np.std(daily_returns) * np.sqrt(252)  # Volatilidade anualizada
-        return last_price, volatilidade
+        if stock.info['quoteType'] == 'ETF':
+            hist = stock.history(period="1y")  # Dados históricos do último ano
+            if hist.empty:
+                st.error(f"Não foi possível obter dados para o ETF com o símbolo {ticker_symbol}. Por favor, tente outro símbolo.")
+                return None, None
+            last_price = hist['Close'].iloc[-1]  # Último preço de fechamento
+            daily_returns = hist['Close'].pct_change().dropna()  # Mudança percentual diária
+            volatilidade = np.std(daily_returns) * np.sqrt(252)  # Volatilidade anualizada
+            return last_price, volatilidade
+        else:
+            data = stock.history(period="1y")
+            if data.empty:
+                st.error(f"Não foi possível obter dados para a ação com o símbolo {ticker_symbol}. Por favor, tente outro símbolo.")
+                return None, None
+            last_price = data['Close'].iloc[-1]
+            daily_returns = data['Close'].pct_change().dropna()
+            volatilidade = np.std(daily_returns) * np.sqrt(252)
+            return last_price, volatilidade
     except KeyError:
         st.error(f"As informações necessárias para calcular a opção não estão disponíveis para o símbolo {ticker_symbol}. Por favor, tente outro símbolo.")
         return None, None
-
+        
 def black_scholes(S, K, T, r, sigma, option_type='call'):
     d1 = (np.log(S / K) + (r + sigma**2 / 2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
