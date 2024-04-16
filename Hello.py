@@ -99,6 +99,63 @@ with tab2:
     st.header("Análise de Sensibilidade - Greeks")
     # Campos para entrada de dados e visualização de Greeks
 
+import streamlit as st
+import numpy as np
+from scipy.stats import norm
+import matplotlib.pyplot as plt
+
+# Funções dos Greeks
+def calc_delta(S, K, T, r, sigma, option_type):
+    """Calcula o Delta da opção."""
+    d1 = (np.log(S / K) + (r + sigma**2 / 2) * T) / (sigma * np.sqrt(T))
+    if option_type == 'call':
+        return norm.cdf(d1)
+    else:
+        return norm.cdf(d1) - 1
+
+def calc_gamma(S, K, T, r, sigma):
+    """Calcula o Gamma da opção."""
+    d1 = (np.log(S / K) + (r + sigma**2 / 2) * T) / (sigma * np.sqrt(T))
+    return norm.pdf(d1) / (S * sigma * np.sqrt(T))
+
+def calc_vega(S, K, T, r, sigma):
+    """Calcula o Vega da opção."""
+    d1 = (np.log(S / K) + (r + sigma**2 / 2) * T) / (sigma * np.sqrt(T))
+    return S * norm.pdf(d1) * np.sqrt(T) * 0.01  # Multiplicado por 0.01 para converter de % para pontos base
+
+# Implementação do Plot
+def plot_simulation(S, sigma, T):
+    """Simula o preço do ativo subjacente."""
+    times = np.linspace(0, T, int(T*365))
+    prices = S * np.exp((r - 0.5 * sigma**2) * times + sigma * np.sqrt(times) * np.random.normal(size=len(times)))
+    plt.figure(figsize=(10, 5))
+    plt.plot(times, prices)
+    plt.title('Simulação de Preço do Ativo')
+    plt.xlabel('Tempo (dias)')
+    plt.ylabel('Preço do Ativo')
+    plt.grid(True)
+    st.pyplot(plt)
+
+# Interface do Streamlit
+st.title('Calculadora de Opções Avançada')
+
+option_type = st.selectbox('Tipo de Opção:', ['call', 'put'])
+S = st.number_input('Preço do Ativo Subjacente (S):', value=100.0)
+K = st.number_input('Preço de Exercício (K):', value=100.0)
+T = st.number_input('Tempo até Expiração (T) em anos:', value=1.0)
+r = st.number_input('Taxa de Juros Sem Risco (r):', value=0.05)
+sigma = st.number_input('Volatilidade (σ):', value=0.20)
+
+if st.button('Calcular Greeks'):
+    delta = calc_delta(S, K, T, r, sigma, option_type)
+    gamma = calc_gamma(S, K, T, r, sigma)
+    vega = calc_vega(S, K, T, r, sigma)
+    st.write(f"Delta: {delta:.4f}, Gamma: {gamma:.4f}, Vega: {vega:.4f}")
+
+if st.button('Simular Preço do Ativo'):
+    plot_simulation(S, sigma, T)
+
+
 with tab3:
     st.header("Simulação de Preço do Ativo")
     # Inserir gráfico interativo de simulação de preço
