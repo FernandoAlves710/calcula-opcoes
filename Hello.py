@@ -8,14 +8,18 @@ st.set_page_config(page_title="Calculadora de Opções Avançada", layout="wide"
 
 def get_stock_data(ticker_symbol):
     stock = yf.Ticker(ticker_symbol)
-    hist = stock.history(period="1y")  # Dados históricos do último ano
-    if hist.empty:
-        st.error(f"Não foi possível obter dados para o símbolo {ticker_symbol}. Por favor, tente outro símbolo.")
+    if stock.info['quoteType'] == 'ETF':
+        hist = stock.history(period="1y")  # Dados históricos do último ano
+        if hist.empty:
+            st.error(f"Não foi possível obter dados para o símbolo {ticker_symbol}. Por favor, tente outro símbolo.")
+            return None, None
+        last_price = hist['Close'].iloc[-1]  # Último preço de fechamento
+        daily_returns = hist['Close'].pct_change().dropna()  # Mudança percentual diária
+        volatilidade = np.std(daily_returns) * np.sqrt(252)  # Volatilidade anualizada
+        return last_price, volatilidade
+    else:
+        st.error("O símbolo fornecido não é um ETF. Por favor, forneça um símbolo de ETF válido.")
         return None, None
-    last_price = hist['Close'].iloc[-1]  # Último preço de fechamento
-    daily_returns = hist['Close'].pct_change().dropna()  # Mudança percentual diária
-    volatilidade = np.std(daily_returns) * np.sqrt(252)  # Volatilidade anualizada
-    return last_price, volatilidade
 
 def black_scholes(S, K, T, r, sigma, option_type='call'):
     d1 = (np.log(S / K) + (r + sigma**2 / 2) * T) / (sigma * np.sqrt(T))
@@ -42,7 +46,7 @@ def vega(S, K, T, r, sigma):
 
 # Interface do usuário
 st.title('Calculadora de Opções Avançada')
-simbolo = st.text_input("Digite o símbolo do ativo (ex: AAPL):")
+simbolo = st.text_input("Digite o símbolo do ativo (ex: AAPL ou um ETF como AGRI11):")
 
 if simbolo:
     S, sigma = get_stock_data(simbolo)
