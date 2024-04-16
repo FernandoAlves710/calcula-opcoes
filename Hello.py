@@ -136,9 +136,9 @@ if simbolo:
             vol_imp = implied_volatility(S, K, T, r, preco_opcao)
             st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
             st.write("### Gregas:")
-            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
-            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
-            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
+            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f} (indica a sensibilidade do preço da opção em relação ao preço do ativo subjacente)")
+            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f} (indica a sensibilidade do delta em relação ao preço do ativo subjacente)")
+            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f} (indica a sensibilidade do preço da opção em relação à volatilidade do ativo subjacente)")
             st.write("### Volatilidade Implícita:")
             st.write(f"{vol_imp:.2%}", cls="result")
     elif option_type == "Americana":
@@ -147,9 +147,9 @@ if simbolo:
             vol_imp = implied_volatility(S, K, T, r, preco_opcao)
             st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
             st.write("### Gregas:")
-            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
-            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
-            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
+            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f} (indica a sensibilidade do preço da opção em relação ao preço do ativo subjacente)")
+            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f} (indica a sensibilidade do delta em relação ao preço do ativo subjacente)")
+            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f} (indica a sensibilidade do preço da opção em relação à volatilidade do ativo subjacente)")
             st.write("### Volatilidade Implícita:")
             st.write(f"{vol_imp:.2%}", cls="result")
     elif option_type == "Asiática":
@@ -158,9 +158,9 @@ if simbolo:
             vol_imp = implied_volatility(S, K, T, r, preco_opcao)
             st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
             st.write("### Gregas:")
-            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
-            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
-            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
+            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f} (indica a sensibilidade do preço da opção em relação ao preço do ativo subjacente)")
+            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f} (indica a sensibilidade do delta em relação ao preço do ativo subjacente)")
+            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f} (indica a sensibilidade do preço da opção em relação à volatilidade do ativo subjacente)")
             st.write("### Volatilidade Implícita:")
             st.write(f"{vol_imp:.2%}", cls="result")
 
@@ -170,4 +170,3 @@ if simbolo:
     fig.update_layout(title='Histórico de Preços do Ativo nos Últimos 12 Meses',
                       xaxis_title='Data', yaxis_title='Preço')
     st.plotly_chart(fig)
-
