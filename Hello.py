@@ -100,7 +100,7 @@ st.title('Calculadora de Opções Avançada')
 
 # Sidebar para entrada de dados
 st.write("## Parâmetros de Entrada")
-simbolo = st.text_input("Digite o símbolo do ativo (ex: AAPL):")
+simbolo = st.text_input("Digite o símbolo do ativo desde moedas, ações, commodities e etfs (ex: AAPL):")
 
 if simbolo:
     S, volatility, hist = get_stock_data(simbolo)
