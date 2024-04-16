@@ -88,9 +88,6 @@ st.markdown("""
         padding-top: 2rem;
         padding-bottom: 2rem;
     }
-    .sidebar .sidebar-content {
-        padding: 10px 10px 10px 10px;
-    }
     h1 {
         color: #0e1117;
     }
@@ -101,38 +98,38 @@ st.markdown("""
 st.title('Calculadora de Opções Avançada')
 
 # Sidebar para entrada de dados
-st.sidebar.title("Parâmetros de Entrada")
-simbolo = st.sidebar.text_input("Digite o símbolo do ativo (ex: AAPL):")
+st.write("## Parâmetros de Entrada")
+simbolo = st.text_input("Digite o símbolo do ativo (ex: AAPL):")
 
 if simbolo:
     S, volatility = get_stock_data(simbolo)
-    st.sidebar.write(f"Preço Atual do Ativo: {S:.2f}")
-    st.sidebar.write(f"Volatilidade Anualizada: {volatility:.2%}")
+    st.write(f"Preço Atual do Ativo: {S:.2f}")
+    st.write(f"Volatilidade Anualizada: {volatility:.2%}")
 
-    K = st.sidebar.number_input("Preço de Exercício (K):", min_value=0.0, value=S, format="%.2f")
-    T = st.sidebar.number_input("Tempo até a Expiração (T) em anos:", min_value=0.0, value=1.0, step=0.1, format="%.2f")
-    r = st.sidebar.number_input("Taxa de Juros Sem Risco (r):", min_value=0.0, value=0.05, step=0.01, format="%.2f")
-    option_type = st.sidebar.selectbox("Tipo de Opção:", ["Europeia", "Americana", "Asiática"])
+    K = st.number_input("Preço de Exercício (K):", min_value=0.0, value=S, format="%.2f")
+    T = st.number_input("Tempo até a Expiração (T) em anos:", min_value=0.0, value=1.0, step=0.1, format="%.2f")
+    r = st.number_input("Taxa de Juros Sem Risco (r):", min_value=0.0, value=0.05, step=0.01, format="%.2f")
+    option_type = st.selectbox("Tipo de Opção:", ["Europeia", "Americana", "Asiática"])
 
     if option_type == "Europeia":
-        if st.sidebar.button('Calcular Preço da Opção'):
+        if st.button('Calcular Preço da Opção'):
             preco_opcao = black_scholes(S, K, T, r, volatility)
-            st.sidebar.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
-            st.sidebar.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
-            st.sidebar.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
-            st.sidebar.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
+            st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
+            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
+            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
+            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
     elif option_type == "Americana":
-        if st.sidebar.button('Calcular Preço da Opção'):
+        if st.button('Calcular Preço da Opção'):
             preco_opcao = binomial_option_pricing(S, K, T, r, volatility)
-            st.sidebar.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
-            st.sidebar.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
-            st.sidebar.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
-            st.sidebar.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
+            st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
+            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
+            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
+            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
     elif option_type == "Asiática":
-        if st.sidebar.button('Calcular Preço da Opção'):
+        if st.button('Calcular Preço da Opção'):
             preco_opcao = monte_carlo_option_pricing(S, K, T, r, volatility)
-            st.sidebar.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
-            st.sidebar.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
-            st.sidebar.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
-            st.sidebar.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
+            st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
+            st.write(f"Delta: {delta(S, K, T, r, volatility):.4f}")
+            st.write(f"Gamma: {gamma(S, K, T, r, volatility):.4f}")
+            st.write(f"Vega: {vega(S, K, T, r, volatility):.4f}")
 
