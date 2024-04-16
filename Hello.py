@@ -2,9 +2,11 @@ import streamlit as st
 import numpy as np
 from scipy.stats import norm
 import yfinance as yf
-import matplotlib.pyplot as plt
 
-# Função para buscar o preço e a volatilidade do ativo no Yahoo Finance
+# Configuração inicial da página
+st.set_page_config(page_title="Calculadora de Opções", layout="wide", page_icon="📈")
+
+# Função para obter os dados do ativo do Yahoo Finance
 def get_stock_data(symbol):
     stock = yf.Ticker(symbol)
     hist = stock.history(period="1y")  # Dados históricos do último ano
@@ -13,52 +15,73 @@ def get_stock_data(symbol):
     volatility = np.std(daily_returns) * np.sqrt(252)  # Volatilidade anualizada
     return last_price, volatility
 
-# Configuração inicial da página
-st.set_page_config(page_title="Calculadora de Opções", layout="wide", page_icon="📈")
+# Função para calcular o preço da opção usando o modelo Black-Scholes
+def black_scholes(S, K, T, r, sigma, option_type):
+    d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    if option_type == 'call':
+        return S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+    else:
+        return K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+
+# Função para calcular o preço da opção usando o método Binomial
+def binomial_pricing(S, K, T, r, sigma, n, option_type):
+    dt = T / n
+    u = np.exp(sigma * np.sqrt(dt))
+    d = 1 / u
+    p = (np.exp(r * dt) - d) / (u - d)
+    prices = np.zeros((n + 1, n + 1))
+    prices[0, 0] = S
+    for i in range(1, n + 1):
+        prices[i, 0] = prices[i - 1, 0] * u
+        for j in range(1, i + 1):
+            prices[i, j] = prices[i - 1, j - 1] * d
+    option_values = np.maximum(prices - K, 0)
+    for j in range(n - 1, -1, -1):
+        for i in range(j + 1):
+            option_values[i, j] = np.exp(-r * dt) * (p * option_values[i, j + 1] + (1 - p) * option_values[i + 1, j + 1])
+    return option_values[0, 0]
+
+# Função para calcular o preço da opção usando o método de Monte Carlo
+def monte_carlo_pricing(S, K, T, r, sigma, num_simulations, option_type):
+    dt = T / 365
+    Z = np.random.normal(0, 1, num_simulations)
+    ST = S * np.exp((r - 0.5 * sigma ** 2) * dt + sigma * np.sqrt(dt) * Z)
+    payoff = np.maximum(ST - K, 0)
+    if option_type == 'call':
+        option_price = np.exp(-r * T) * np.mean(payoff)
+    else:
+        option_price = np.exp(-r * T) * np.mean(payoff)
+    return option_price
 
 # Interface do Streamlit
 st.title('Calculadora de Opções')
 
 # Sidebar para entrada de dados
-col1, col2 = st.columns([1, 1])
-with col1:
-    symbol = st.text_input('Digite o símbolo do ativo (ex: AAPL):')
+st.sidebar.title('Parâmetros da Opção')
+symbol = st.sidebar.text_input('Digite o símbolo do ativo (ex: AAPL):')
+strike_price = st.sidebar.number_input('Preço de Exercício (K):', min_value=0.0, format="%.2f")
+expiry_time = st.sidebar.number_input('Tempo até a Expiração (T) em anos:', min_value=0.0, step=0.01, format="%.2f")
+risk_free_rate = st.sidebar.number_input('Taxa de Juros Sem Risco (r):', min_value=0.0, step=0.01, format="%.2f")
+option_type = st.sidebar.selectbox('Tipo de Opção:', ['Call', 'Put'])
 
 # Obter os dados do ativo do Yahoo Finance
 if symbol:
     S, volatility = get_stock_data(symbol)
-    with col2:
-        st.write(f'Preço Atual do Ativo: ${S:.2f}')
-        st.write(f'Volatilidade Anualizada: {volatility:.2%}')
-        st.write('---')
+    st.write(f'Preço Atual do Ativo: ${S:.2f}')
+    st.write(f'Volatilidade Anualizada: {volatility:.2%}')
 
-        # Placeholder para o preço de exercício e a volatilidade
-        placeholder_strike_price = st.empty()
-        placeholder_volatility = st.empty()
+    # Método de cálculo do preço da opção
+    option_method = st.selectbox('Escolha o Método de Cálculo:', ['Black-Scholes', 'Binomial', 'Monte Carlo'])
 
-        # Método de cálculo do preço da opção
-        option_method = st.selectbox('Escolha o Método de Cálculo:', ['Black-Scholes', 'Monte Carlo'])
+    # Botão para calcular o preço da opção
+    if st.button('Calcular Preço da Opção'):
+        if option_method == 'Black-Scholes':
+            option_price = black_scholes(S, strike_price, expiry_time, risk_free_rate, volatility, option_type.lower())
+        elif option_method == 'Binomial':
+            option_price = binomial_pricing(S, strike_price, expiry_time, risk_free_rate, volatility, 1000, option_type.lower())
+        elif option_method == 'Monte Carlo':
+            option_price = monte_carlo_pricing(S, strike_price, expiry_time, risk_free_rate, volatility, 10000, option_type.lower())
+        st.success(f'Preço da Opção Calculado: ${option_price:.2f}')
 
-        # Botão para calcular o preço da opção
-        if st.button('Calcular Preço da Opção'):
-            strike_price = placeholder_strike_price.number_input('Preço de Exercício (K):', min_value=0.0, value=S, format="%.2f")
-            volatility = placeholder_volatility.number_input('Volatilidade (σ):', min_value=0.0, value=volatility, format="%.2%")
-            
-            if option_method == 'Black-Scholes':
-                # Cálculo do preço da opção usando o modelo de Black-Scholes
-                d1 = (np.log(S / strike_price) + (risk_free_rate + 0.5 * volatility ** 2) * expiry_time) / (volatility * np.sqrt(expiry_time))
-                d2 = d1 - volatility * np.sqrt(expiry_time)
-                if option_type == 'Call':
-                    option_price = S * norm.cdf(d1) - strike_price * np.exp(-risk_free_rate * expiry_time) * norm.cdf(d2)
-                else:
-                    option_price = strike_price * np.exp(-risk_free_rate * expiry_time) * norm.cdf(-d2) - S * norm.cdf(-d1)
-            elif option_method == 'Monte Carlo':
-                # Cálculo do preço da opção usando o método de Monte Carlo
-                dt = expiry_time / 365
-                Z = np.random.normal(0, 1, 10000)
-                ST = S * np.exp((risk_free_rate - 0.5 * volatility ** 2) * dt + volatility * np.sqrt(dt) * Z)
-                payoff = np.maximum(ST - strike_price, 0)
-                option_price = np.exp(-risk_free_rate * expiry_time) * np.mean(payoff)
-
-            st.success(f'Preço da Opção Calculado: ${option_price:.2f}')
 
