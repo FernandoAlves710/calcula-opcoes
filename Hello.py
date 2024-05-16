@@ -148,6 +148,14 @@ if simbolo:
             st.write("### Volatilidade Implícita:")
             st.write(f"{vol_imp:.2%}", cls="result")
             st.write("Descrição: Volatilidade implícita é a volatilidade futura do ativo subjacente, inferida do preço atual da opção.")
+     elif option_type == "Americana":
+        if st.button('Calcular Preço da Opção'):
+            preco_opcao = monte_carlo_option_pricing_american(S, K, T, r, volatility)
+            st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
+     elif option_type == "Asiática":
+        if st.button('Calcular Preço da Opção'):
+            preco_opcao = monte_carlo_option_pricing_asian(S, K, T, r, volatility)
+            st.success(f"Preço da Opção Calculada: ${preco_opcao:.2f}")
 
     st.write("## Histórico de Preços")
     fig = go.Figure()
